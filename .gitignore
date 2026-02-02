@@ -8,8 +8,6 @@ Procesamiento/Bases/
 
 # Data file formats
 *.csv
-*.xlsx
-*.xls
 *.rds
 *.zip
 *.sav
