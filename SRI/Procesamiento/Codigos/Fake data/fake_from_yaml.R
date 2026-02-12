@@ -29,7 +29,7 @@ source(file.path(script_dir, "data_spec_yaml.R"))
 # =============================================================================
 
 # Path to YAML specification file
-yaml_file <- file.path('/Users/vero/Library/CloudStorage/GoogleDrive-santy85258@gmail.com/Mi unidad/Trabajos/Observatorio de Políticas Públicas/Observatorio GH/SRI/Procesamiento/Bases/empleo2024_spec.yaml')
+yaml_file <- file.path("/Users/vero/Library/CloudStorage/GoogleDrive-santy85258@gmail.com/Mi unidad/Trabajos/Observatorio de Políticas Públicas/Observatorio GH/SRI/Procesamiento/Bases/empleo2024_spec.yaml")
 
 # Number of rows to generate
 n_rows <- 10000
@@ -68,7 +68,7 @@ cat("  Original rows: ", data_spec$n_original, "\n\n")
 
 # Generate synthetic data
 cat("Generating synthetic data...\n")
-fake_data <- fake_data_creation(data_spec, n = n_rows, seed = seed, verbose = TRUE)
+fake_data <- fake_data_creation(data_spec2, n = 1000, seed = 41, verbose = TRUE)
 
 # Save to CSV
 cat("\nSaving to CSV...\n")

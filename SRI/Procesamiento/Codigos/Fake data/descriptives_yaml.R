@@ -38,12 +38,11 @@ if (!exists("%||%")) {
 #' @param data_spec data specification object
 #' @return list suitable for YAML conversion
 spec_to_yaml_list <- function(data_spec) {
-  
   # Convert variable specs to a cleaner format
   vars_list <- lapply(data_spec$variables, function(var) {
     # Remove NULL values and convert special types
     var_clean <- Filter(Negate(is.null), var)
-    
+
     # Convert named vectors to lists for better YAML display
     if (!is.null(var_clean$value_labels)) {
       var_clean$value_labels <- as.list(var_clean$value_labels)
@@ -56,30 +55,32 @@ spec_to_yaml_list <- function(data_spec) {
       names(var_clean$category_probs) <- as.character(var_clean$categories)
       var_clean$category_probs <- as.list(var_clean$category_probs)
     }
-    
+
     # Round numeric values for readability
-    numeric_fields <- c("mean", "sd", "min", "max", "skewness", "cv",
-                        "missing_prop", "log_mean", "log_sd")
+    numeric_fields <- c(
+      "mean", "sd", "min", "max", "skewness", "cv",
+      "missing_prop", "log_mean", "log_sd"
+    )
     for (field in numeric_fields) {
       if (!is.null(var_clean[[field]]) && is.numeric(var_clean[[field]])) {
         var_clean[[field]] <- round(var_clean[[field]], 6)
       }
     }
-    
+
     return(var_clean)
   })
-  
+
   # Create metadata section
   # Handle both extraction_date and creation_date (for manually created specs)
   date_field <- data_spec$extraction_date %||% data_spec$creation_date %||% Sys.time()
-  
+
   metadata <- list(
     n_original = data_spec$n_original,
     n_vars = data_spec$n_vars,
     extraction_date = format(date_field, "%Y-%m-%d %H:%M:%S"),
     format_version = "1.0"
   )
-  
+
   list(
     metadata = metadata,
     variables = vars_list
@@ -91,14 +92,14 @@ spec_to_yaml_list <- function(data_spec) {
 #' @param file path to save YAML file
 #' @param include_header include explanatory header comments
 save_spec_yaml <- function(data_spec, file, include_header = TRUE) {
-  
   yaml_list <- spec_to_yaml_list(data_spec)
-  
+
   # Custom YAML handler for better formatting
   yaml_content <- yaml::as.yaml(yaml_list,
-                                indent = 2,
-                                indent.mapping.sequence = TRUE)
-  
+    indent = 2,
+    indent.mapping.sequence = TRUE
+  )
+
   if (include_header) {
     header <- paste0(
       "# =============================================================================\n",
@@ -124,7 +125,7 @@ save_spec_yaml <- function(data_spec, file, include_header = TRUE) {
     )
     yaml_content <- paste0(header, yaml_content)
   }
-  
+
   writeLines(yaml_content, file)
   message("Data specification saved to: ", file)
 }
@@ -133,34 +134,32 @@ save_spec_yaml <- function(data_spec, file, include_header = TRUE) {
 #' @param file path to YAML file
 #' @return data_spec object
 load_spec_yaml <- function(file) {
-  
   yaml_list <- yaml::read_yaml(file)
-  
+
   # Convert variables back to proper format
   variables <- lapply(yaml_list$variables, function(var) {
-    
     # Convert value_labels back to named vector
     if (!is.null(var$value_labels)) {
       labels <- unlist(var$value_labels)
       var$value_labels <- setNames(labels, names(var$value_labels))
     }
-    
+
     # Convert quantiles back to named vector
     if (!is.null(var$quantiles)) {
       quants <- unlist(var$quantiles)
       var$quantiles <- setNames(quants, names(var$quantiles))
     }
-    
+
     # Convert category_probs back
     if (!is.null(var$category_probs)) {
       if (is.list(var$category_probs)) {
         probs <- unlist(var$category_probs)
         cat_names <- names(probs)
-        
+
         # Check if categories are numeric or character
         if (var$dist_form == "categorical_string" ||
-            var$type == "character" ||
-            any(is.na(suppressWarnings(as.numeric(cat_names))))) {
+          var$type == "character" ||
+          any(is.na(suppressWarnings(as.numeric(cat_names))))) {
           # Keep as character
           var$categories <- cat_names
         } else {
@@ -170,16 +169,16 @@ load_spec_yaml <- function(file) {
         var$category_probs <- as.numeric(probs)
       }
     }
-    
+
     return(var)
   })
-  
+
   # Reconstruct data_spec object
   extraction_date <- tryCatch(
     as.POSIXct(yaml_list$metadata$extraction_date),
     error = function(e) Sys.time()
   )
-  
+
   data_spec <- list(
     variables = variables,
     n_original = yaml_list$metadata$n_original,
@@ -187,9 +186,9 @@ load_spec_yaml <- function(file) {
     var_names = names(variables),
     extraction_date = extraction_date
   )
-  
+
   class(data_spec) <- c("data_spec", "list")
-  
+
   return(data_spec)
 }
 
@@ -216,7 +215,6 @@ load_spec_yaml <- function(file) {
 # fake_data <- fake_data_creation(data_spec, n = 1000)
 
 
-data_spec <- extract_data_spec("/Users/vero/Library/CloudStorage/GoogleDrive-santy85258@gmail.com/Mi unidad/Trabajos/Observatorio de Políticas Públicas/Observatorio GH/SRI/Procesamiento/Bases/empleo2024.dta")
-yaml_spec <- save_spec_yaml(data_spec, "my_data_spec2.yaml")
-data_spec2 <- load_spec_yaml("my_data_spec2.yaml")
-
+# data_spec <- extract_data_spec("/Users/vero/Library/CloudStorage/GoogleDrive-santy85258@gmail.com/Mi unidad/Trabajos/Observatorio de Políticas Públicas/Observatorio GH/SRI/Procesamiento/Bases/empleo2024.dta")
+# yaml_spec <- save_spec_yaml(data_spec, "my_data_spec2.yaml")
+# data_spec2 <- load_spec_yaml("my_data_spec2.yaml")
